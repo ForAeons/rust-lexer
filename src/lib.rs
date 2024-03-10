@@ -58,9 +58,6 @@ impl<'a> Lexer<'a> {
     pub fn read_number(&mut self) -> String {
         let position = self.position;
         while self.ch.is_ascii_digit() {
-            if self.ch == ';' {
-                panic!("semicolon found in number")
-            }
             self.read_char();
         }
         self.input[position..self.position].to_owned()
@@ -68,9 +65,6 @@ impl<'a> Lexer<'a> {
 
     pub fn skip_whitespace(&mut self) {
         while self.ch.is_whitespace() {
-            if self.ch == ';' {
-                panic!("semicolon found in number")
-            }
             self.read_char();
         }
     }
@@ -129,7 +123,7 @@ impl<'a> Iterator for Lexer<'a> {
                 },
                 self.read_number(),
             ),
-            _ => Token::new(TokenKind::Unknown, self.ch.to_string()),
+            _ => Token::new(TokenKind::Unknown, self.consume_char()),
         };
 
         Some(token)
@@ -206,7 +200,7 @@ mod test {
     }
 
     #[test]
-    fn test_block_statements() {
+    fn test_fn_declaration() {
         let input = r#"
             let five = 5.0;
             let ten = 10;
@@ -271,6 +265,58 @@ mod test {
             Token::new(TokenKind::Ident, "ten".to_owned()),
             Token::new(TokenKind::CloseParen, ")".to_owned()),
             Token::new(TokenKind::Semi, ";".to_owned()),
+        ];
+
+        for e in expected {
+            let next = lexer.next();
+            assert_eq!(next.unwrap(), e);
+        }
+    }
+
+    #[test]
+    fn test_while_loop() {
+        let input = r#"
+            let i = 0;
+            while (i < 10) {
+                i = i + 1;
+            }
+        "#;
+        let mut lexer = Lexer::new(input);
+        let expected = vec![
+            Token::new(TokenKind::Ident, "let".to_owned()),
+            Token::new(TokenKind::Ident, "i".to_owned()),
+            Token::new(TokenKind::Eq, "=".to_owned()),
+            Token::new(
+                TokenKind::Literal {
+                    kind: token::LiteralKind::Int,
+                },
+                "0".to_owned(),
+            ),
+            Token::new(TokenKind::Semi, ";".to_owned()),
+            Token::new(TokenKind::Ident, "while".to_owned()),
+            Token::new(TokenKind::OpenParen, "(".to_owned()),
+            Token::new(TokenKind::Ident, "i".to_owned()),
+            Token::new(TokenKind::Lt, "<".to_owned()),
+            Token::new(
+                TokenKind::Literal {
+                    kind: token::LiteralKind::Int,
+                },
+                "10".to_owned(),
+            ),
+            Token::new(TokenKind::CloseParen, ")".to_owned()),
+            Token::new(TokenKind::OpenBrace, "{".to_owned()),
+            Token::new(TokenKind::Ident, "i".to_owned()),
+            Token::new(TokenKind::Eq, "=".to_owned()),
+            Token::new(TokenKind::Ident, "i".to_owned()),
+            Token::new(TokenKind::Plus, "+".to_owned()),
+            Token::new(
+                TokenKind::Literal {
+                    kind: token::LiteralKind::Int,
+                },
+                "1".to_owned(),
+            ),
+            Token::new(TokenKind::Semi, ";".to_owned()),
+            Token::new(TokenKind::CloseBrace, "}".to_owned()),
         ];
 
         for e in expected {

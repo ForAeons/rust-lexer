@@ -5,5 +5,5 @@ This repository contains a simple lexer implemented in Rust. The lexer is design
 ## Features
 
 - Tokenization of various lexeme types including identifiers, literals, punctuation, operators, and more.
-- Support for numeric literals and basic data types.
+- Support for numeric literals.
 - Skipping of whitespace to focus on significant tokens.
